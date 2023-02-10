@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midjourney</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+</head>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+    * {
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+        background: #020418;
+    }
+    body {
+        margin-top: 50px;
+        overflow: hidden;
+    }
+    .box {
+        border-radius: 5px;
+        margin: 0 auto;
+        padding-bottom: 10px;
+        max-width: 800px;
+        background: #212336;
+        height: 100%;
+    }
+    .box img {
+        margin-top: 10px;
+        width: 100%;
+    }
+    .box_label {
+        user-select: none;
+        margin-top: 8px;
+        margin-left: 15px;
+        border-radius: 5px;
+        padding: 5px;
+        font-weight: 500;
+        font-size: 12px;
+        color: #888994;
+        display: inline-block;
+        background: #2B2D40;
+        transition: all 0.3s ease;
+    }
+    .box_input {
+        padding-left: 15px;
+        margin-top: 20px;
+        width: 100%;
+  
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+    }
+    .active {
+        background: white;
+        color: black;
+    }
+    .box_input:focus {
+        outline: none;
+    }
+    .box_result {
+        margin-top: 10px;
+        background: #2B2D40;
+        display: none;
+    }
+    .box_result.box_active {
+        display: block;
+        height: 100%;
+    }
+    .loading_holder {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        transform: rotate(45deg);
+    }
+    .circle {
+        width: 200px;
+        height: 200px;
+        background: red;
+        border-radius: 50%;
+        animation: spin 2s alternate infinite;
+        position: absolute;
+    }
+    .circle:nth-child(1) {
+        animation-delay: 0.1s;
+        background: #4f0f8c;
+        width: 180px;
+        height: 180px;
+    }
+    .circle:nth-child(2) {
+        animation-delay: 0.2s;
+        background: #6914ba;
+        width: 160px;
+        height: 160px;
+    }
+    .circle:nth-child(3) {
+        animation-delay: 0.3s;
+        background: #831ae7;
+        width: 140px;
+        height: 140px;
+    }
+    .circle:nth-child(4) {
+        animation-delay: 0.4s;
+        background: #9c48ec;
+        width: 120px;
+        height: 120px;
+    }
+    .circle:nth-child(5) {
+        animation-delay: 0.5s;
+        background: #b577f0;
+        width: 100px;
+        height: 100px;
+    }
+    .circle:nth-child(6) {
+        animation-delay: 0.6s;
+        background: #cea5f5;
+        width: 80px;
+        height: 80px;
+    }
+    .circle:nth-child(7) {
+        animation-delay: 0.7s;
+        background: #e7d3fa;
+        width: 60px;
+        height: 60px;
+    }
+    .circle:nth-child(8) {
+        animation-delay: 0.8s;
+        background: white;
+        width: 40px;
+        height: 40px;
+    }
+    .circle:nth-child(9) {
+        animation-delay: 0.9s;
+        background: white;
+        width: 20px;
+        height: 20px;
+    }
+    @keyframes spin {
+        0% {
+            border-radius: 50%;
+            transform: rotate(0);
+        }
+
+        20% {
+            border-radius: 50%;
+            transform: rotate(0);
+        }
+
+        90% {
+            border-radius: 5%;
+            transform: rotate(90deg);
+        }
+
+        100% {
+            border-radius: 5%;
+            transform: rotate(90deg);
+        }
+    }
+    #imgSrc {
+        margin: 0px !important;
+        display: none;
+    }
+</style>
+
+<body>
+    <div class="box">
+        <div class="box_label">/ imagine</div>
+        <input class="box_input" placeholder="Enter your promt here..." id="inputPromt"/>
+        <div class="box_result">
+            <div class="box_label" style="margin-bottom: 10px;" id="loadingIdentify"><i class="fa fa-spinner fa-spin" style="background: none;"></i> / loading...</div>  
+            <div class="loading_holder">
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+            </div>
+            <img id="imgSrc" src="">
+        </div>
+
+    </div>
+</body>
+<script>
+    const node = document.getElementsByClassName("box_input")[0];
+    node.addEventListener("keyup", function (event) {
+        if (event.key === "Enter") {
+            document.getElementsByClassName("box_label")[0].innerHTML = "/ try another promt?"
+            document.getElementsByClassName("box_label")[0].addEventListener('click', function(e) {
+                location.reload();
+            });
+            document.getElementsByClassName("box_label")[0].classList.add("active");
+            document.getElementsByClassName("box_result")[0].classList.add("box_active");
+            document.getElementById("inputPromt").disabled = true;
+            $.ajax('promt.php', {
+                type: 'POST',
+                data: { input: document.getElementById("inputPromt").value },
+                dataType: 'json',
+                success: function(data) {
+                    console.log(data.response_code);
+                    if(data.response_code == 204) {
+                        setInterval(()=> {
+                            console.log("Fetching");
+                            $.ajax('fetch.php', {
+                                type: 'GET',
+                                dataType: 'json',
+                                success: function(data) {
+                                    document.getElementsByClassName("loading_holder")[0].style.display = "none";
+                                    document.getElementById("imgSrc").style.display = "block";
+                                    document.getElementById("loadingIdentify").innerHTML = data[0].content;
+                                    document.getElementById("imgSrc").src = data[0].attachments[0].url;
+                                }
+                            });
+                        }, 10000)
+                    }
+                    else {
+                        document.getElementById("loadingIdentify").innerHTML = '<i class="fa fa-exclamation-triangle" style="background: none"></i>' + " something wrong has happened!!!";
+                        document.getElementsByClassName("loading_holder")[0].style.display = "none";
+                    }
+                }
+            });
+        }
+    });
+</script>
+</html>
